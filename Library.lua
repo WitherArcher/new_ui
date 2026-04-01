@@ -9,28 +9,6 @@ local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
 local Mouse = LocalPlayer:GetMouse();
 
---[[
-    ========== MOBILE SUPPORT ENHANCEMENTS ==========
-    This library has been fully optimized for mobile devices with the following features:
-    
-    ✓ Full touch input support (IsPrimaryInput handles both mouse and touch)
-    ✓ Mobile-responsive UI sizing (automatically scales for small screens)
-    ✓ Touch-friendly button sizes (increased touch targets for mobile)
-    ✓ Smart dropdown positioning (stays on-screen on mobile)
-    ✓ Touch-compatible input handling (no mouse dependency)
-    ✓ Improved tooltip positioning for touch
-    ✓ Device detection (IsMobile() function)
-    ✓ Screen size detection and adaptation
-    
-    Mobile-specific behaviors:
-    - Windows auto-scale to fit screen on mobile
-    - Touch targets are larger for easier interaction
-    - Dropdowns reposition to avoid going off-screen
-    - All hover effects work with touch
-    - Context menus accessible via touch
-    ================================================
-]]
-
 -- Mobile detection
 local UserInputService = game:GetService('UserInputService');
 local DeviceType = (function()
@@ -1035,12 +1013,10 @@ do
                 local function UpdateColorPicker(IsMouseButtonPressed)
                     local MinX = SatVibMap.AbsolutePosition.X;
                     local MaxX = MinX + SatVibMap.AbsoluteSize.X;
-                    local X = GetInputPosition(Input)
-                    local MouseX = math.clamp(X, MinX, MaxX);
-
                     local MinY = SatVibMap.AbsolutePosition.Y;
                     local MaxY = MinY + SatVibMap.AbsoluteSize.Y;
-                    local Y = GetInputPosition(Input)
+                    local X, Y = GetInputPosition(Input)
+                    local MouseX = math.clamp(X, MinX, MaxX);
                     local MouseY = math.clamp(Y, MinY, MaxY);
 
                     ColorPicker.Sat = (MouseX - MinX) / (MaxX - MinX);
