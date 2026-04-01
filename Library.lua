@@ -622,6 +622,7 @@ do
             Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 18;
             Image = 'rbxassetid://4155801252';
+            Active = true;
             Parent = SatVibMapInner;
         });
 
@@ -657,6 +658,7 @@ do
             BorderSizePixel = 0;
             Size = UDim2.new(1, 0, 1, 0);
             ZIndex = 18;
+            Active = true;
             Parent = HueSelectorOuter;
         });
 
@@ -742,6 +744,7 @@ do
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 1, 0);
                 ZIndex = 19;
+                Active = true;
                 Parent = TransparencyBoxOuter;
             });
 
@@ -1055,7 +1058,7 @@ do
                 local function UpdateHuePicker()
                     local MinY = HueSelectorInner.AbsolutePosition.Y;
                     local MaxY = MinY + HueSelectorInner.AbsoluteSize.Y;
-                    local Y = GetInputPosition(Input)
+                    local X, Y = GetInputPosition(Input)
                     local MouseY = math.clamp(Y, MinY, MaxY);
 
                     ColorPicker.Hue = ((MouseY - MinY) / (MaxY - MinY));
