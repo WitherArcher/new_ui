@@ -1010,7 +1010,7 @@ do
 
         SatVibMap.InputBegan:Connect(function(Input)
             if IsPrimaryInput(Input) then
-                local function UpdateColorPicker(IsMouseButtonPressed)
+                local function UpdateColorPicker()
                     local MinX = SatVibMap.AbsolutePosition.X;
                     local MaxX = MinX + SatVibMap.AbsoluteSize.X;
                     local MinY = SatVibMap.AbsolutePosition.Y;
@@ -1028,7 +1028,7 @@ do
                 local MoveConnection
                 local EndConnection
 
-                UpdateColorPicker(true)
+                UpdateColorPicker()
 
                 MoveConnection = InputService.InputChanged:Connect(function(InputObject)
                     if not Dragging then return end
@@ -1036,7 +1036,7 @@ do
                         and InputObject.UserInputType ~= Enum.UserInputType.Touch then
                         return
                     end
-                    UpdateColorPicker(InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1))
+                    UpdateColorPicker()
                 end)
 
                 EndConnection = InputService.InputEnded:Connect(function(InputObject)
@@ -2747,6 +2747,16 @@ end)
             Library:SafeCallback(Dropdown.Callback, Dropdown.Value);
             Library:SafeCallback(Dropdown.Changed, Dropdown.Value);
         end;
+
+        DropdownOuter.InputBegan:Connect(function(Input)
+            if IsPrimaryInput(Input) and not Library:MouseIsOverOpenedFrame(Input) then
+                if ListOuter.Visible then
+                    Dropdown:CloseDropdown()
+                else
+                    Dropdown:OpenDropdown()
+                end;
+            end;
+        end);
 
         InputService.InputBegan:Connect(function(Input)
 	if IsPrimaryInput(Input) then
