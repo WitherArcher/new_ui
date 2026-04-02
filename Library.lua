@@ -1667,7 +1667,8 @@ do
                     return false
                 end
 
-                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1
+                    and Input.UserInputType ~= Enum.UserInputType.Touch then
                     return false
                 end
 

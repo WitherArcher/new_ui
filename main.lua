@@ -990,7 +990,9 @@ MISC:AddToggle('AUTO_SELL', {
 		local AUTO_SELL_BUSY = false
 		
 		if Value then
-			AutoSell()
+			if CharacterisFull() then
+				AutoSell()
+			end
 			AUTO_SELL_CONN = GetBackpack().ChildAdded:Connect(function(c)
 				if c:IsA("Weld") then return end
 				if AUTO_SELL_BUSY then return end
