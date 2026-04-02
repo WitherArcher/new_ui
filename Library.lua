@@ -3499,9 +3499,14 @@ function Library:CreateWindow(...)
             });
 
             function Groupbox:Resize()
-                local Size = Groupbox.Container.AbsoluteContentSize.Y;
+                local ListLayout = Groupbox.Container:FindFirstChildOfClass('UIListLayout');
+                local ContentHeight = 0;
 
-                BoxOuter.Size = UDim2.new(1, 0, 0, 20 + Size + 2 + 2);
+                if ListLayout then
+                    ContentHeight = ListLayout.AbsoluteContentSize.Y;
+                end
+
+                BoxOuter.Size = UDim2.new(1, 0, 0, 20 + ContentHeight + 2 + 2);
             end;
 
             Groupbox.Container = Container;
