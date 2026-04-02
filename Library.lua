@@ -207,33 +207,60 @@ function Library:MakeDraggable(Instance, Cutoff)
 
 	local Dragging = false
 	local DragOffset = Vector2.zero
+	local DragReady = false
 
 	Instance.InputBegan:Connect(function(Input)
 		if not IsPrimaryInput(Input) then
 			return
 		end
 
-		local X, Y = GetInputPosition(Input)
+		-- For touch inputs, Input.Position can be (0,0) in InputBegan.
+		-- We defer offset calculation to the first InputChanged to get
+		-- the real finger position and avoid snapping to top-left.
+		if Input.UserInputType == Enum.UserInputType.Touch then
+			DragReady = true
+			Dragging = false
+		else
+			local X, Y = GetInputPosition(Input)
 
-		DragOffset = Vector2.new(
-			X - Instance.AbsolutePosition.X,
-			Y - Instance.AbsolutePosition.Y
-		)
+			DragOffset = Vector2.new(
+				X - Instance.AbsolutePosition.X,
+				Y - Instance.AbsolutePosition.Y
+			)
 
-		if DragOffset.Y > (Cutoff or 40) then
-			return
+			if DragOffset.Y > (Cutoff or 40) then
+				return
+			end
+
+			Dragging = true
 		end
-
-		Dragging = true
 	end)
 
 	InputService.InputChanged:Connect(function(Input)
-		if not Dragging then
+		if Input.UserInputType ~= Enum.UserInputType.MouseMovement
+			and Input.UserInputType ~= Enum.UserInputType.Touch then
 			return
 		end
 
-		if Input.UserInputType ~= Enum.UserInputType.MouseMovement
-			and Input.UserInputType ~= Enum.UserInputType.Touch then
+		-- On first touch move, calculate offset from real position
+		if DragReady and Input.UserInputType == Enum.UserInputType.Touch then
+			local X, Y = GetInputPosition(Input)
+
+			DragOffset = Vector2.new(
+				X - Instance.AbsolutePosition.X,
+				Y - Instance.AbsolutePosition.Y
+			)
+
+			if DragOffset.Y > (Cutoff or 40) then
+				DragReady = false
+				return
+			end
+
+			DragReady = false
+			Dragging = true
+		end
+
+		if not Dragging then
 			return
 		end
 
@@ -241,15 +268,16 @@ function Library:MakeDraggable(Instance, Cutoff)
 
 		Instance.Position = UDim2.new(
 			0,
-			X - DragOffset.X + (Instance.Size.X.Offset * Instance.AnchorPoint.X),
+			X - DragOffset.X,
 			0,
-			Y - DragOffset.Y + (Instance.Size.Y.Offset * Instance.AnchorPoint.Y)
+			Y - DragOffset.Y
 		)
 	end)
 
 	InputService.InputEnded:Connect(function(Input)
 		if IsPrimaryInput(Input) then
 			Dragging = false
+			DragReady = false
 		end
 	end)
 end
@@ -3356,7 +3384,7 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
-        local SideSize = Library.IsMobile and UDim2.new(1, -16, 1, -16) or UDim2.new(0.5, -10, 1, -16);
+        local SideSize = UDim2.new(0.5, -10, 1, -16);
         local LeftSidePos = UDim2.new(0, 8 - 1, 0, 8 - 1);
         local RightSidePos = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
 
@@ -3384,7 +3412,7 @@ function Library:CreateWindow(...)
             ScrollBarThickness = 0;
             ZIndex = 2;
             Parent = TabFrame;
-            Visible = not Library.IsMobile;
+            Visible = true;
         });
 
         Library:Create('UIListLayout', {

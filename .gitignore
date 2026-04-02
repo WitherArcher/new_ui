@@ -1,0 +1,11 @@
+# Ignore everything by default
+*
+
+# Allow these specific files/folders
+!main.lua
+!Library.lua
+!addons/
+!addons/**
+
+# Allow .gitignore itself
+!.gitignore

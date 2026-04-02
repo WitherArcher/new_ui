@@ -686,6 +686,63 @@ local Tabs = {
 	['UI Settings'] = Window:AddTab('UI Settings'),
 }
 
+-- Mobile UI close/open feature (set to false to disable, true to force on all devices)
+local MOBILE_UI_CLOSE_FEATURE = false
+local mobileFeatureActive = MOBILE_UI_CLOSE_FEATURE or Library.IsMobile
+
+local MobileCloseButton, MobileOpenButton
+if mobileFeatureActive then
+	-- Close button: parented to Window.Holder so it moves with the UI when dragged
+	MobileCloseButton = Instance.new('TextButton')
+	MobileCloseButton.Name = 'MobileCloseButton'
+	MobileCloseButton.Text = '✕'
+	MobileCloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	MobileCloseButton.TextSize = 18
+	MobileCloseButton.Font = Enum.Font.GothamBold
+	MobileCloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+	MobileCloseButton.BorderSizePixel = 0
+	MobileCloseButton.Size = UDim2.new(0, 30, 0, 25)
+	MobileCloseButton.AnchorPoint = Vector2.new(1, 0)
+	MobileCloseButton.Position = UDim2.new(1, -2, 0, 1)
+	MobileCloseButton.ZIndex = 999
+	MobileCloseButton.Parent = Window.Holder -- parented to the window so it moves with drag
+
+	-- Rounded corners for close button
+	local closeCorner = Instance.new('UICorner')
+	closeCorner.CornerRadius = UDim.new(0, 4)
+	closeCorner.Parent = MobileCloseButton
+
+	-- Open button: stays on left side of screen, always in ScreenGui
+	MobileOpenButton = Instance.new('TextButton')
+	MobileOpenButton.Name = 'MobileOpenButton'
+	MobileOpenButton.Text = '☰ Open'
+	MobileOpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	MobileOpenButton.TextSize = 14
+	MobileOpenButton.Font = Enum.Font.GothamBold
+	MobileOpenButton.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
+	MobileOpenButton.BorderSizePixel = 0
+	MobileOpenButton.Size = UDim2.new(0, 70, 0, 35)
+	MobileOpenButton.Position = UDim2.new(0, 5, 0.5, -17)
+	MobileOpenButton.ZIndex = 999
+	MobileOpenButton.Visible = false
+	MobileOpenButton.Parent = Library.ScreenGui
+
+	-- Rounded corners for open button
+	local openCorner = Instance.new('UICorner')
+	openCorner.CornerRadius = UDim.new(0, 6)
+	openCorner.Parent = MobileOpenButton
+
+	MobileCloseButton.MouseButton1Click:Connect(function()
+		Window.Holder.Visible = false
+		MobileOpenButton.Visible = true
+	end)
+
+	MobileOpenButton.MouseButton1Click:Connect(function()
+		Window.Holder.Visible = true
+		MobileOpenButton.Visible = false
+	end)
+end
+
 local CHARACTER_AUTOFARM = Tabs.Main:AddLeftGroupbox('Character Auto Farm')
 local VEHICLE_SETTINGS = Tabs.Main:AddLeftGroupbox('Vehicle Settings')
 local WORLD = Tabs.Main:AddLeftGroupbox('World')
