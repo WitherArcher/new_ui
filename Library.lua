@@ -1485,7 +1485,7 @@ do
             end;
         end);
 
-        Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
+        Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
             if (not Picking) then
                 if KeyPicker.Mode == 'Toggle' then
                     local Key = KeyPicker.Value;
@@ -1496,7 +1496,7 @@ do
                             KeyPicker.Toggled = not KeyPicker.Toggled
                             KeyPicker:DoClick()
                         end;
-                    elseif Input.UserInputType == Enum.UserInputType.Keyboard then
+                    elseif Input.UserInputType == Enum.UserInputType.Keyboard and not Processed then
                         if Input.KeyCode.Name == Key then
                             KeyPicker.Toggled = not KeyPicker.Toggled;
                             KeyPicker:DoClick()
@@ -3886,7 +3886,7 @@ function Library:CreateWindow(...)
 
     Library:GiveSignal(InputService.InputBegan:Connect(function(Input, Processed)
         if type(Library.ToggleKeybind) == 'table' and Library.ToggleKeybind.Type == 'KeyPicker' then
-            if Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name == Library.ToggleKeybind.Value then
+            if Input.UserInputType == Enum.UserInputType.Keyboard and not Processed and Input.KeyCode.Name == Library.ToggleKeybind.Value then
                 task.spawn(Library.Toggle)
             end
         elseif Input.KeyCode == Enum.KeyCode.RightControl or (Input.KeyCode == Enum.KeyCode.RightShift and (not Processed)) then
