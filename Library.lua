@@ -209,6 +209,27 @@ function Library:MakeDraggable(Instance, Cutoff)
 	local DragOffset = Vector2.zero
 	local DragReady = false
 
+	local function CalculateOffset(X, Y)
+		return Vector2.new(
+			X - Instance.AbsolutePosition.X,
+			Y - Instance.AbsolutePosition.Y
+		)
+	end
+
+	local function SetPositionFromInput(X, Y)
+		-- AnchorPoint shifts where Position is applied (e.g. 0.5,0.5 = center).
+		-- AbsolutePosition is always top-left. We must add AnchorPoint*Size 
+		-- so the offset-based Position lands in the correct spot.
+		local AnchorOffset = Instance.AnchorPoint * Instance.AbsoluteSize
+
+		Instance.Position = UDim2.new(
+			0,
+			X - DragOffset.X + AnchorOffset.X,
+			0,
+			Y - DragOffset.Y + AnchorOffset.Y
+		)
+	end
+
 	Instance.InputBegan:Connect(function(Input)
 		if not IsPrimaryInput(Input) then
 			return
@@ -223,10 +244,7 @@ function Library:MakeDraggable(Instance, Cutoff)
 		else
 			local X, Y = GetInputPosition(Input)
 
-			DragOffset = Vector2.new(
-				X - Instance.AbsolutePosition.X,
-				Y - Instance.AbsolutePosition.Y
-			)
+			DragOffset = CalculateOffset(X, Y)
 
 			if DragOffset.Y > (Cutoff or 40) then
 				return
@@ -246,10 +264,7 @@ function Library:MakeDraggable(Instance, Cutoff)
 		if DragReady and Input.UserInputType == Enum.UserInputType.Touch then
 			local X, Y = GetInputPosition(Input)
 
-			DragOffset = Vector2.new(
-				X - Instance.AbsolutePosition.X,
-				Y - Instance.AbsolutePosition.Y
-			)
+			DragOffset = CalculateOffset(X, Y)
 
 			if DragOffset.Y > (Cutoff or 40) then
 				DragReady = false
@@ -265,13 +280,7 @@ function Library:MakeDraggable(Instance, Cutoff)
 		end
 
 		local X, Y = GetInputPosition(Input)
-
-		Instance.Position = UDim2.new(
-			0,
-			X - DragOffset.X,
-			0,
-			Y - DragOffset.Y
-		)
+		SetPositionFromInput(X, Y)
 	end)
 
 	InputService.InputEnded:Connect(function(Input)
