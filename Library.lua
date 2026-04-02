@@ -381,17 +381,6 @@ function Library:IsMouseOverFrame(Frame)
 	end
 end
 
-function Library:IsMouseOverFrame(Frame)
-    local X, Y = GetInputPosition();
-    local AbsPos, AbsSize = Frame.AbsolutePosition, Frame.AbsoluteSize;
-
-    if X >= AbsPos.X and X <= AbsPos.X + AbsSize.X
-        and Y >= AbsPos.Y and Y <= AbsPos.Y + AbsSize.Y then
-
-        return true;
-    end;
-end;
-
 function Library:UpdateDependencyBoxes()
     for _, Depbox in next, Library.DependencyBoxes do
         Depbox:Update();
@@ -3197,14 +3186,15 @@ function Library:CreateWindow(...)
     
     if typeof(Config.Size) ~= 'UDim2' then 
         if IsMobileDevice then
-            -- Mobile: Make window fill most of screen
-            Config.Size = UDim2.fromOffset(math.max(ScreenSize.X - 20, 250), math.max(ScreenSize.Y - 20, 300))
+            -- Mobile: small enough to fully fit screen (single-column UI)
+            Config.Size = UDim2.new(0.95, 0, 0.95, 0)
         else
-            Config.Size = UDim2.fromOffset(550, 600)
+            -- Desktop: keep window reasonably small for bigger displays
+            Config.Size = UDim2.fromOffset(math.min(550, ScreenSize.X - 40), math.min(600, ScreenSize.Y - 80))
         end
     end
 
-    if Config.Center then
+    if Config.Center or IsMobileDevice then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
         Config.Position = UDim2.fromScale(0.5, 0.5)
     end
@@ -3365,11 +3355,15 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
+        local SideSize = Library.IsMobile and UDim2.new(1, -16, 1, -16) or UDim2.new(0.5, -10, 1, -16);
+        local LeftSidePos = UDim2.new(0, 8 - 1, 0, 8 - 1);
+        local RightSidePos = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
+
         local LeftSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
-            Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            Position = LeftSidePos;
+            Size = SideSize;
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
@@ -3381,14 +3375,15 @@ function Library:CreateWindow(...)
         local RightSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
-            Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            Position = RightSidePos;
+            Size = SideSize;
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
             ScrollBarThickness = 0;
             ZIndex = 2;
             Parent = TabFrame;
+            Visible = not Library.IsMobile;
         });
 
         Library:Create('UIListLayout', {
@@ -3443,9 +3438,9 @@ function Library:CreateWindow(...)
                 BackgroundColor3 = Library.BackgroundColor;
                 BorderColor3 = Library.OutlineColor;
                 BorderMode = Enum.BorderMode.Inset;
-                Size = UDim2.new(1, 0, 0, 507 + 2);
+                Size = UDim2.new(1, 0, 0, 0);
                 ZIndex = 2;
-                Parent = Info.Side == 1 and LeftSide or RightSide;
+                Parent = (Info.Side == 1 or Library.IsMobile) and LeftSide or RightSide;
             });
 
             Library:AddToRegistry(BoxOuter, {
@@ -3504,13 +3499,7 @@ function Library:CreateWindow(...)
             });
 
             function Groupbox:Resize()
-                local Size = 0;
-
-                for _, Element in next, Groupbox.Container:GetChildren() do
-                    if (not Element:IsA('UIListLayout')) and Element.Visible then
-                        Size = Size + Element.Size.Y.Offset;
-                    end;
-                end;
+                local Size = Groupbox.Container.AbsoluteContentSize.Y;
 
                 BoxOuter.Size = UDim2.new(1, 0, 0, 20 + Size + 2 + 2);
             end;
