@@ -692,6 +692,10 @@ local mobileFeatureActive = MOBILE_UI_CLOSE_FEATURE or Library.IsMobile
 
 local MobileCloseButton, MobileOpenButton
 if mobileFeatureActive then
+	-- Saved window position so we can restore it on reopen
+	local savedWindowPosition = nil
+	local firstClose = true
+
 	-- Close button: parented to Window.Holder so it moves with the UI when dragged
 	MobileCloseButton = Instance.new('TextButton')
 	MobileCloseButton.Name = 'MobileCloseButton'
@@ -705,41 +709,119 @@ if mobileFeatureActive then
 	MobileCloseButton.AnchorPoint = Vector2.new(1, 0)
 	MobileCloseButton.Position = UDim2.new(1, -2, 0, 1)
 	MobileCloseButton.ZIndex = 999
-	MobileCloseButton.Parent = Window.Holder -- parented to the window so it moves with drag
+	MobileCloseButton.Parent = Window.Holder
 
 	-- Rounded corners for close button
 	local closeCorner = Instance.new('UICorner')
 	closeCorner.CornerRadius = UDim.new(0, 4)
 	closeCorner.Parent = MobileCloseButton
 
-	-- Open button: stays on left side of screen, always in ScreenGui
+	-- Open button: spawns at the close button's position, draggable
 	MobileOpenButton = Instance.new('TextButton')
 	MobileOpenButton.Name = 'MobileOpenButton'
-	MobileOpenButton.Text = '☰ Open'
+	MobileOpenButton.Text = '☰'
 	MobileOpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	MobileOpenButton.TextSize = 14
+	MobileOpenButton.TextSize = 18
 	MobileOpenButton.Font = Enum.Font.GothamBold
 	MobileOpenButton.BackgroundColor3 = Color3.fromRGB(0, 85, 255)
 	MobileOpenButton.BorderSizePixel = 0
-	MobileOpenButton.Size = UDim2.new(0, 70, 0, 35)
-	MobileOpenButton.Position = UDim2.new(0, 5, 0.5, -17)
+	MobileOpenButton.Size = UDim2.new(0, 40, 0, 40)
+	MobileOpenButton.AnchorPoint = Vector2.new(0.5, 0.5)
+	MobileOpenButton.Position = UDim2.new(0, 5, 0.5, -17) -- default, will be overwritten on close
 	MobileOpenButton.ZIndex = 999
 	MobileOpenButton.Visible = false
 	MobileOpenButton.Parent = Library.ScreenGui
 
 	-- Rounded corners for open button
 	local openCorner = Instance.new('UICorner')
-	openCorner.CornerRadius = UDim.new(0, 6)
+	openCorner.CornerRadius = UDim.new(0, 8)
 	openCorner.Parent = MobileOpenButton
 
+	-- Make the open button draggable
+	do
+		local dragging = false
+		local dragOffset = Vector2.zero
+		local dragReady = false
+		local wasDragged = false
+
+		MobileOpenButton.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				local pos = input.Position
+				dragOffset = Vector2.new(
+					pos.X - MobileOpenButton.AbsolutePosition.X - MobileOpenButton.AbsoluteSize.X * MobileOpenButton.AnchorPoint.X,
+					pos.Y - MobileOpenButton.AbsolutePosition.Y - MobileOpenButton.AbsoluteSize.Y * MobileOpenButton.AnchorPoint.Y
+				)
+				dragging = true
+				wasDragged = false
+			elseif input.UserInputType == Enum.UserInputType.Touch then
+				dragReady = true
+				wasDragged = false
+			end
+		end)
+
+		UIS.InputChanged:Connect(function(input)
+			if input.UserInputType ~= Enum.UserInputType.MouseMovement
+				and input.UserInputType ~= Enum.UserInputType.Touch then
+				return
+			end
+
+			-- First touch move: calculate offset from real position
+			if dragReady and input.UserInputType == Enum.UserInputType.Touch then
+				local pos = input.Position
+				dragOffset = Vector2.new(
+					pos.X - MobileOpenButton.AbsolutePosition.X - MobileOpenButton.AbsoluteSize.X * MobileOpenButton.AnchorPoint.X,
+					pos.Y - MobileOpenButton.AbsolutePosition.Y - MobileOpenButton.AbsoluteSize.Y * MobileOpenButton.AnchorPoint.Y
+				)
+				dragReady = false
+				dragging = true
+			end
+
+			if not dragging then return end
+
+			wasDragged = true
+			local pos = input.Position
+			local anchorOffset = MobileOpenButton.AnchorPoint * MobileOpenButton.AbsoluteSize
+			MobileOpenButton.Position = UDim2.fromOffset(
+				pos.X - dragOffset.X + anchorOffset.X,
+				pos.Y - dragOffset.Y + anchorOffset.Y
+			)
+		end)
+
+		UIS.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1
+				or input.UserInputType == Enum.UserInputType.Touch then
+				-- If it was a tap (not a drag), treat it as a click to open
+				if not wasDragged and MobileOpenButton.Visible then
+					-- Restore window to saved position
+					if savedWindowPosition then
+						Window.Holder.Position = savedWindowPosition
+					end
+					Window.Holder.Visible = true
+					MobileOpenButton.Visible = false
+				end
+				dragging = false
+				dragReady = false
+			end
+		end)
+	end
+
 	MobileCloseButton.MouseButton1Click:Connect(function()
+		-- Save the window's current position before hiding
+		savedWindowPosition = Window.Holder.Position
+
+		-- Only place the open button at the close button's position the first time
+		if firstClose then
+			local closeAbsPos = MobileCloseButton.AbsolutePosition
+			local closeAbsSize = MobileCloseButton.AbsoluteSize
+			MobileOpenButton.Position = UDim2.fromOffset(
+				closeAbsPos.X + closeAbsSize.X / 2,
+				closeAbsPos.Y + closeAbsSize.Y / 2
+			)
+			firstClose = false
+		end
+
 		Window.Holder.Visible = false
 		MobileOpenButton.Visible = true
-	end)
-
-	MobileOpenButton.MouseButton1Click:Connect(function()
-		Window.Holder.Visible = true
-		MobileOpenButton.Visible = false
 	end)
 end
 
