@@ -3223,13 +3223,9 @@ function Library:CreateWindow(...)
     end
     
     if typeof(Config.Size) ~= 'UDim2' then 
-        if IsMobileDevice then
-            -- Mobile: small enough to fully fit screen (single-column UI)
-            Config.Size = UDim2.new(0.95, 0, 0.95, 0)
-        else
-            -- Desktop: keep window reasonably small for bigger displays
-            Config.Size = UDim2.fromOffset(math.min(550, ScreenSize.X - 40), math.min(600, ScreenSize.Y - 80))
-        end
+        -- Use consistent sizing for both desktop and mobile
+        -- The two-column layout needs at least ~500px width to work properly
+        Config.Size = UDim2.fromOffset(math.min(550, ScreenSize.X - 40), math.min(600, ScreenSize.Y - 80))
     end
 
     if Config.Center or IsMobileDevice then
