@@ -805,7 +805,12 @@ if mobileFeatureActive then
 		end)
 	end
 
-	MobileCloseButton.MouseButton1Click:Connect(function()
+	MobileCloseButton.InputBegan:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.MouseButton1
+			and input.UserInputType ~= Enum.UserInputType.Touch then
+			return
+		end
+
 		-- Save the window's current position before hiding
 		savedWindowPosition = Window.Holder.Position
 
@@ -868,6 +873,10 @@ WORLD:AddToggle('FULLBRIGHT', {
 				Lighting.ClockTime = 14
 			end))
 
+			table.insert(FullbrightConnection, Lighting:GetPropertyChangedSignal('Ambient'):Connect(function()
+				Lighting.Ambient = Color3.fromRGB(170, 170, 170)
+			end))
+
 			table.insert(FullbrightConnection, Lighting:GetPropertyChangedSignal('TimeOfDay'):Connect(function()
 				Lighting.TimeOfDay = '14:00:00'
 			end))
@@ -876,6 +885,7 @@ WORLD:AddToggle('FULLBRIGHT', {
 				Lighting.OutdoorAmbient = FullbrightColor
 			end))
 
+			Lighting.Ambient = Color3.fromRGB(170, 170, 170)
 			Lighting.OutdoorAmbient = FullbrightColor
 			Lighting.ClockTime = 14
 			Lighting.TimeOfDay = '14:00:00'
