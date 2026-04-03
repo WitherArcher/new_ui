@@ -1353,29 +1353,21 @@ do
 
             if KeyPicker.NoUI then
                 ContainerLabel.Visible = false;
-                return;
+            else
+                ContainerLabel.Text = string.format('[%s] %s (%s)', KeyPicker.Value, Info.Text, KeyPicker.Mode);
+
+                ContainerLabel.Visible = true;
+                ContainerLabel.TextColor3 = State and Library.AccentColor or Library.FontColor;
+
+                Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
             end;
 
-            ContainerLabel.Text = string.format('[%s] %s (%s)', KeyPicker.Value, Info.Text, KeyPicker.Mode);
-
-            ContainerLabel.Visible = true;
-            ContainerLabel.TextColor3 = State and Library.AccentColor or Library.FontColor;
-
-            Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
-
-            local YSize = 0
-            local XSize = 0
-
-            for _, Label in next, Library.KeybindContainer:GetChildren() do
-                if Label:IsA('TextLabel') and Label.Visible then
-                    YSize = YSize + 18;
-                    if (Label.TextBounds.X > XSize) then
-                        XSize = Label.TextBounds.X
-                    end
-                end;
+            -- Use UIListLayout's AbsoluteContentSize for accurate sizing
+            local ListLayout = Library.KeybindContainer:FindFirstChildOfClass('UIListLayout');
+            if ListLayout then
+                local ContentSize = ListLayout.AbsoluteContentSize;
+                Library.KeybindFrame.Size = UDim2.new(0, math.max(ContentSize.X + 10, 210), 0, ContentSize.Y + 43);
             end;
-
-            Library.KeybindFrame.Size = UDim2.new(0, math.max(XSize + 10, 210), 0, YSize + 23)
         end;
 
         function KeyPicker:GetState()
