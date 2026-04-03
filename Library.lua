@@ -1218,6 +1218,7 @@ do
             ChangedCallback = Info.ChangedCallback or function(New) end;
 
             SyncToggleState = Info.SyncToggleState or false;
+            NoUI = Info.NoUI or false;
         };
 
         if KeyPicker.SyncToggleState then
@@ -1348,11 +1349,12 @@ do
         end;
 
         function KeyPicker:Update()
-            if Info.NoUI then
+            local State = KeyPicker:GetState();
+
+            if KeyPicker.NoUI then
+                ContainerLabel.Visible = false;
                 return;
             end;
-
-            local State = KeyPicker:GetState();
 
             ContainerLabel.Text = string.format('[%s] %s (%s)', KeyPicker.Value, Info.Text, KeyPicker.Mode);
 
@@ -1402,6 +1404,11 @@ do
             DisplayLabel.Text = Key;
             KeyPicker.Value = Key;
             ModeButtons[Mode]:Select();
+            KeyPicker:Update();
+        end;
+
+        function KeyPicker:SetNoUI(Value)
+            KeyPicker.NoUI = Value;
             KeyPicker:Update();
         end;
 
