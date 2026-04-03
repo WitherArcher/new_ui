@@ -1362,12 +1362,26 @@ do
                 Library.RegistryMap[ContainerLabel].Properties.TextColor3 = State and 'AccentColor' or 'FontColor';
             end;
 
-            -- Use UIListLayout's AbsoluteContentSize for accurate sizing
-            local ListLayout = Library.KeybindContainer:FindFirstChildOfClass('UIListLayout');
-            if ListLayout then
-                local ContentSize = ListLayout.AbsoluteContentSize;
-                Library.KeybindFrame.Size = UDim2.new(0, math.max(ContentSize.X + 10, 210), 0, ContentSize.Y + 43);
+            -- Calculate size based on visible labels with proper bounds checking
+            local YSize = 0
+            local XSize = 0
+
+            for _, Label in next, Library.KeybindContainer:GetChildren() do
+                if Label:IsA('TextLabel') and Label.Visible then
+                    YSize = YSize + 18;
+                    local textWidth = Label.TextBounds.X
+                    if textWidth > XSize then
+                        XSize = textWidth
+                    end
+                end;
             end;
+
+            -- Ensure minimum sizes and prevent infinite growth
+            XSize = math.min(XSize, 400) -- Cap maximum width
+            local newWidth = math.max(XSize + 15, 210) -- Account for padding
+            local newHeight = math.max(YSize + 25, 20) -- Minimum height with title
+
+            Library.KeybindFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
         end;
 
         function KeyPicker:GetState()
